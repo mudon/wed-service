@@ -6,10 +6,11 @@ const mysql = require('mysql');
 const port = 7733; // Port is correctly defined as 8080
 
 const conn = mysql.createConnection({
-    host     : '127.0.0.1',
-    user     : 'wed',
-    password : 'Hazim@123',
-    database : 'Wed'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT || 3306,
   });
 
 conn.connect((err) => {
