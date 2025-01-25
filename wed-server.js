@@ -3,7 +3,7 @@ const app = express();
 const cors = require('cors');
 const mysql = require('mysql');
 
-const port = 8080; // Port is correctly defined as 8080
+const port = 7733; // Port is correctly defined as 8080
 
 const conn = mysql.createConnection({
     host     : '127.0.0.1',
@@ -12,7 +12,13 @@ const conn = mysql.createConnection({
     database : 'Wed'
   });
 
-const onConnection = conn.connect();
+conn.connect((err) => {
+    if (err) {
+        console.error("Error connecting to the database:", err);
+        process.exit(1);
+    }
+    console.log("Connected to the MySQL database");
+});
 
 app.use(cors());
 app.use(express.json())
