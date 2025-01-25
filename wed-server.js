@@ -27,12 +27,12 @@ app.get("/admin/senaraiKehadiran", (req, res) => {
 // Route: Insert attendance data
 app.post("/kehadiran", async (req, res) => {
   const data = req.body;
-
+  
   try {
-    const { error } = await supabase.from("List").insert({
+    const { error } = await supabase.from("Senarai").insert({
       id: Date.now(),
       name: data.name,
-      nomborTelefon: data.fon,
+      nomborFon: data.fon,
       jumlahKehadiran: parseInt(data.jumlah),
       ucapan: data.ucapan,
       kehadiran: data.kehadiran,
