@@ -1,73 +1,80 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const cors = require('cors');
-const mysql = require('mysql');
+const cors = require("cors");
+const { createClient } = require("@supabase/supabase-js");
 
-const port = 7733; // Port is correctly defined as 8080
+const port = 7733; // Port for the server
 
-const conn = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT || 3306,
-  });
-
-conn.connect((err) => {
-    if (err) {
-        console.error("Error connecting to the database:", err);
-        process.exit(1);
-    }
-    console.log("Connected to the MySQL database");
-});
+// Supabase setup
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.use(cors());
-app.use(express.json())
+app.use(express.json());
 
+// Route: Redirect to admin attendance list
 app.post("/admin", (req, res) => {
-      res.redirect("/admin/senaraiKehadiran");
+  res.redirect("/admin/senaraiKehadiran");
 });
 
+// Route: Get admin attendance list
 app.get("/admin/senaraiKehadiran", (req, res) => {
-    res.json({"message": "Hello, World!"});
+  res.json({ message: "Hello, World!" });
 });
 
-app.post("/kehadiran", (req, res) => {
-    const data = req.body;
-    
-    const query = `INSERT INTO List (id, name, nomborTelefon, jumlahKehadiran, ucapan, kehadiran)
-    VALUES (?, ?, ?, ?, ?, ?)`;
-    const params = [Date.now(), data.name, data.fon, parseInt(data.jumlah), data.ucapan, data.kehadiran];
+// Route: Insert attendance data
+app.post("/kehadiran", async (req, res) => {
+  const data = req.body;
 
-    conn.query(query, params, (err, results) => { 
-        if (err) {
-            console.error("Error executing query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
-    
-        res.status(200).json({ message: "Data inserted successfully", data: results });
+  try {
+    const { error } = await supabase.from("List").insert({
+      id: Date.now(),
+      name: data.name,
+      nomborTelefon: data.fon,
+      jumlahKehadiran: parseInt(data.jumlah),
+      ucapan: data.ucapan,
+      kehadiran: data.kehadiran,
     });
 
-        
+    if (error) {
+      console.error("Error inserting data:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    res.status(200).json({ message: "Data inserted successfully" });
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    res.status(500).json({ error: "Unexpected error occurred" });
+  }
 });
 
-app.post("/hadiah", (req, res) => {    
-    const data = req.body;
-    const query = `INSERT INTO Tempahan (id, name, itemName) VALUES (?, ?, ?)`;
-    const params = [Date.now(), data.name, data.itemName];
+// Route: Insert gift booking data
+app.post("/hadiah", async (req, res) => {
+  const data = req.body;
 
-    conn.query(query, params, (err, results) => {
-        if (err) {
-            console.error("Error executing query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
-
-        res.status(200).json({ message: "Data inserted successfully", data: results });
+  try {
+    const { error } = await supabase.from("Tempahan").insert({
+      id: Date.now(),
+      name: data.name,
+      itemName: data.itemName,
     });
+
+    if (error) {
+      console.error("Error inserting data:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    res.status(200).json({ message: "Data inserted successfully" });
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    res.status(500).json({ error: "Unexpected error occurred" });
+  }
 });
 
-app.listen(port, () => { 
-    console.log(`Server running on port ${port}`); // Updated log message to reflect the correct port
+// Start the server
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
